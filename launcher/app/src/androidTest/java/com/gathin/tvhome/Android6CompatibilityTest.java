@@ -21,6 +21,35 @@ public class Android6CompatibilityTest {
         return InstrumentationRegistry.getInstrumentation().getTargetContext();
     }
 
+    @Test public void h2HdmiChoicesResolveToTheNativePlayer() throws Exception {
+        org.junit.Assume.assumeTrue(XgimiH2InputsActivity.available(context()));
+        for (int port : new int[] {1, 2}) {
+            android.content.Intent intent = XgimiH2InputsActivity.inputIntent(port);
+            assertNotNull(context().getPackageManager().resolveActivity(intent, 0));
+            assertEquals("com.mstar.tv.tvplayer.ui", intent.getComponent().getPackageName());
+            assertEquals(port == 1 ? 23 : 24, intent.getIntExtra("inputSrc", -1));
+        }
+    }
+
+    @Test public void h2HdmiMenuAcceptsRemoteNavigationAndBackWithoutSwitching() {
+        org.junit.Assume.assumeTrue(XgimiH2InputsActivity.available(context()));
+        try (ActivityScenario<XgimiH2InputsActivity> scenario = ActivityScenario.launch(XgimiH2InputsActivity.class)) {
+            scenario.onActivity(activity -> assertEquals(0, activity.choices().getSelectedItemPosition()));
+            InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_DPAD_DOWN);
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+            scenario.onActivity(activity -> assertEquals(1, activity.choices().getSelectedItemPosition()));
+            InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK);
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync();
+            // finish() pauses immediately; H2 completes destruction after its closing animation.
+            long deadline = android.os.SystemClock.uptimeMillis() + 5000;
+            while (scenario.getState() != androidx.lifecycle.Lifecycle.State.DESTROYED
+                    && android.os.SystemClock.uptimeMillis() < deadline) {
+                android.os.SystemClock.sleep(50);
+            }
+            assertEquals(androidx.lifecycle.Lifecycle.State.DESTROYED, scenario.getState());
+        }
+    }
+
     @Test public void televisionInputBackendMayBeAbsent() {
         // A framework manager backed by a null ITvInputManager must not crash an AOSP projector.
         android.media.tv.TvInputManager inputs = PlatformCompat.tvInputManager(context());

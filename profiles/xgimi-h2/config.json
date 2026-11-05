@@ -1,0 +1,18 @@
+{
+  "stock_home_redirect": "com.xgimi.home",
+  "app_library": true,
+  "library_button": true,
+  "library_ok_opens": true,
+  "library_apps": [
+    "com.xgimi.filemanager",
+    "com.hpplay.happyplay.aw"
+  ],
+  "show_inputs_pill": true,
+  "live_tv_package": "",
+  "source_panel_service": "com.gathin.tvhome/.XgimiH2InputsActivity",
+  "source_panel_action": "",
+  "app_labels": [
+    "com.hpplay.happyplay.aw=AirPlay 投屏"
+  ],
+  "home_long_press_home": true
+}

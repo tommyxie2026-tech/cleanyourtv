@@ -65,6 +65,23 @@ the original launcher and other accessibility services enabled. Android 6/7 use 
 launch because some projector firmware rejects third-party HOME intents. Reboot and physical remote
 behavior require separate device checks.
 
+### H2 HDMI and AirPlay profile
+
+Version `3.4-android6.1` adds an opt-in `XgimiH2InputsActivity`. H2's old MStar source panel only
+confirms with ENTER (66), while its Bluetooth remote sends DPAD_CENTER (23). The new two-item picker
+accepts ordinary remote navigation and opens the native player with its verified `inputSrc` values
+23 (HDMI 1) and 24 (HDMI 2). It adds no permission or dependency and does not change other TVs' defaults.
+
+The [H2 profile](profiles/xgimi-h2/config.json) includes the source button, AirPlay shortcut, file manager,
+app library and Home-key helper configuration. It contains no device addresses or identifiers.
+
+Set `source_panel_service` to `com.gathin.tvhome/.XgimiH2InputsActivity`, `source_panel_action` to
+an empty string, `live_tv_package` to an empty string, and `show_inputs_pill` to true in H2's config.
+To expose its existing AirPlay receiver, include `com.hpplay.happyplay.aw` in `library_apps` and
+optionally set `app_labels` to include `com.hpplay.happyplay.aw=AirPlay 投屏`. This is an entry to the
+installed receiver, not a new AirPlay implementation. Its first-run terms require the user's own choice.
+The launcher retains no network permission. Screen/audio mirroring requires a separate sender-device test.
+
 ## Design and implementation record
 
 - [Approved design](docs/superpowers/specs/2026-11-05-android6-compatibility-design.md)

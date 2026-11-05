@@ -56,3 +56,12 @@ Files: launcher/app/build.gradle; MainActivity.java; HomeKeyService.java; GuardK
 - Preserve local branch and deliver APK plus source patch; do not push or publish. APK exceeds upstream 576 KiB gate due Java library backfill; gate and CI remain unchanged.
 
 - 2026-11-06: User explicitly requested git commit/push including the APK. This supersedes the earlier local-only delivery restriction. Publish the current compatibility branch, including only the verified release APK, checksum and public validation notes; exclude keys and device backups.
+
+
+## H2 HDMI and AirPlay follow-up (2026-11-06)
+- User requested HDMI source switching and AirPlay. Use the existing native receiver; no new network permission or receiver implementation.
+- Native old MStar picker only confirms ENTER (66), whereas the Bluetooth remote sends DPAD_CENTER (23). Added an opt-in, non-exported XgimiH2InputsActivity with HDMI 1 / HDMI 2 choices; it uses the verified native player action and source codes 23/24.
+- Regression tests failed first due to the missing picker. Final build: 321 unit tests pass, lint zero errors/113 warnings. Final nine H2 device tests passed, including explicit Back-key cancellation and destroyed-state checks after the H2 closing animation.
+- Optimized release runtime checks switched both native hardware sources from the launcher UID and returned to Home after each. Physical HDMI picture/audio and physical remote confirmation for the new menu remain pending.
+- Source-only reviewer found no Critical/Important issue; the minor Back-key coverage naming mismatch was addressed with an actual Back event and destroyed-state assertion.
+- H2 AirPlay receiver was discoverable on the LAN. First-run terms were displayed, never accepted by the assistant; user acceptance and actual mirroring remain pending.
