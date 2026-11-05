@@ -36,7 +36,7 @@ Files: launcher/app/build.gradle; MainActivity.java; HomeKeyService.java; GuardK
 ## Task 3: Device verification and delivery
 - [x] Install APK alongside existing H2 apps; start as an ordinary app.
 - [x] Check current activity, fatal exceptions and app listing; test native settings and injected Home return.
-- [ ] User verification of physical remote directions, OK, Back and Home; actual reboot-to-Home check.
+- [x] User verification of physical remote directions, OK, Back and Home; actual reboot-to-Home check (user confirmed 2026-11-06).
 - [x] Confirm stock Home still works and the five Ice Box states remain unchanged.
 - [x] Review full diff; fix material findings with tests; copy APK and patch to outputs with validation notes and SHA256.
 
@@ -52,5 +52,5 @@ Files: launcher/app/build.gradle; MainActivity.java; HomeKeyService.java; GuardK
 - H2 also rejects package-scoped HOME intents: Android 6/7 helper uses explicit MainActivity without HOME category. Regression verified on H2.
 - User explicitly authorized persistent Home helper and default startup. Enabled only this helper in addition to the existing voice service; configured stock_home_redirect in app external config. All five pre-existing Ice Box hidden states confirmed unchanged.
 - Full Python suite: 2903 tests, 67 skipped, one environment-dependent DNS failure in test_adb_closed_address_words (reserved tv.invalid unexpectedly resolves in this environment). Do not report a fully green repository suite.
-- Real remote and actual reboot verification remain pending user feedback. Boot redirect is configured, not yet proven across a reboot. Android 7 and newer devices have not been physically tested in this run.
+- User confirmed on 2026-11-06 that physical remote operation and automatic launcher startup after a real reboot are normal. Android 7 and newer devices have not been physically tested in this run.
 - Preserve local branch and deliver APK plus source patch; do not push or publish. APK exceeds upstream 576 KiB gate due Java library backfill; gate and CI remain unchanged.
