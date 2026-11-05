@@ -54,3 +54,5 @@ Files: launcher/app/build.gradle; MainActivity.java; HomeKeyService.java; GuardK
 - Full Python suite: 2903 tests, 67 skipped, one environment-dependent DNS failure in test_adb_closed_address_words (reserved tv.invalid unexpectedly resolves in this environment). Do not report a fully green repository suite.
 - User confirmed on 2026-11-06 that physical remote operation and automatic launcher startup after a real reboot are normal. Android 7 and newer devices have not been physically tested in this run.
 - Preserve local branch and deliver APK plus source patch; do not push or publish. APK exceeds upstream 576 KiB gate due Java library backfill; gate and CI remain unchanged.
+
+- 2026-11-06: User explicitly requested git commit/push including the APK. This supersedes the earlier local-only delivery restriction. Publish the current compatibility branch, including only the verified release APK, checksum and public validation notes; exclude keys and device backups.

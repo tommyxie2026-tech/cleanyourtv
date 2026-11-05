@@ -11,6 +11,11 @@ the input's regular label because custom labels and hidden-input queries are una
 Network callbacks and unlock checks use version-aware paths. On Android 6/7, a stable installed-package
 snapshot also detects updates missed by package broadcasts, rather than only comparing app counts.
 
+## Packaged APK
+
+The repository owner requested that the verified [APK and checksum](releases/android6/README.md)
+be committed with this compatibility branch.
+
 ## Build
 
 Use JDK 17, Android SDK platform 34 and build-tools 34.0.0. Set `ANDROID_HOME` or write `sdk.dir` in
