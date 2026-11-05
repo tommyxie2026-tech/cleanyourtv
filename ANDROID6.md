@@ -86,3 +86,6 @@ The launcher retains no network permission. Screen/audio mirroring requires a se
 
 - [Approved design](docs/superpowers/specs/2026-11-05-android6-compatibility-design.md)
 - [Implementation plan and ledger](docs/superpowers/plans/2026-11-05-android6-compatibility.md)
+
+H2 user verification (2026-11-06): the owner confirmed HDMI switching, picture/audio and Home return
+with the real remote, and personally accepted the receiver terms and confirmed AirPlay mirroring/audio.

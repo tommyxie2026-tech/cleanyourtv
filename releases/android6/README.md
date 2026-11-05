@@ -4,8 +4,8 @@
 
 This APK is included at the repository owner's explicit request. It updates the H2-tested release with
 an opt-in, remote-compatible HDMI 1 / HDMI 2 menu. The user's previous version confirmed physical remote
-controls and automatic Home startup after a real reboot on 2026-11-06; the new HDMI menu still needs
-physical remote/picture/audio confirmation.
+controls and automatic Home startup after a real reboot on 2026-11-06. The user also confirmed the
+new HDMI menu, physical remote, picture/audio and Home return on 2026-11-06.
 
 - Package: `com.gathin.tvhome`; versionCode 15; minSdk 23; targetSdk 34.
 - Size: 816,156 bytes. SHA256: `a7e0337d619a73071b9adb33c3250d7b488a2cb53a026836d5ed82c77df12883`.
@@ -14,9 +14,11 @@ physical remote/picture/audio confirmation.
 - 321 Java unit tests passed; lint has zero errors and 113 warnings.
 - Nine H2 device tests cover compatibility, HDMI native intent resolution and picker navigation.
 - The optimized release switched the native hardware input to HDMI 1 and HDMI 2 from the launcher's own
-  app UID; Home return passed for both ports. Actual HDMI picture/audio still needs a sender-device test.
+  app UID; Home return passed for both ports. Physical remote switching, picture/audio and Home return
+  were subsequently confirmed by the user on the real H2.
 - AirPlay uses the installed receiver, shown as “AirPlay 投屏”. Discovery on the LAN was confirmed.
-  User must personally choose whether to accept the receiver's first-run terms; actual mirroring is pending.
+  The user personally accepted the receiver's first-run terms and confirmed mirroring and audio
+  work normally on 2026-11-06. The assistant did not accept terms on the user's behalf.
 - The prior full Python suite ran 2903 tests: 67 skipped and one environment-dependent DNS failure for
   the reserved `tv.invalid` hostname. Android 7 and newer devices were not physically tested here.
 - The APK exceeds upstream's 576 KiB size gate because of Java API backfilling. CI and that gate are unchanged.
