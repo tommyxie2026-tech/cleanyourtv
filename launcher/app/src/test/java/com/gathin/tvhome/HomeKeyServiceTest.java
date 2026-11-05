@@ -5,6 +5,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class HomeKeyServiceTest {
+    @Test public void projectorWithoutHomeFilterUsesItsOrdinaryLauncher() {
+        java.util.Set<String> homes = new java.util.HashSet<>();
+        HomeKeyService.addLaunchHomeFallback(homes, "vendor.home.MainActivity");
+        assertTrue(homes.contains("vendor.home.MainActivity"));
+    }
+
+    @Test public void aDeclaredHomeNeverRedirectsTheVendorsOtherLaunchActivity() {
+        java.util.Set<String> homes = new java.util.HashSet<>();
+        homes.add("vendor.home.HomeActivity");
+        HomeKeyService.addLaunchHomeFallback(homes, "vendor.settings.SettingsActivity");
+        assertFalse(homes.contains("vendor.settings.SettingsActivity"));
+        assertTrue(homes.contains("vendor.home.HomeActivity"));
+    }
     private static final long SOON = 45_000L;
 
     @Test public void aTapIsAShortPress() {

@@ -10,6 +10,7 @@
     <!-- Tried in order when no standard settings handler is usable; each package must also be visible
          through <queries> in the manifest. -->
     <string-array name="settings_fallback_components" translatable="false">
+        <item>com.android.newsettings/com.android.newsettings.main.MSettingsActivity</item>
         <item>com.xiaomi.mitv.settings/com.xiaomi.mitv.settings.entry.MainActivity</item>
         <item>com.tcl.settings/com.tcl.settings.ui.MainActivity</item>
         <item>com.amazon.tv.launcher/com.amazon.tv.launcher.ui.MainSettingsActivity</item>

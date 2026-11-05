@@ -31,6 +31,9 @@ final class OpenOnStart {
     }
 
     static int boot(Context ctx) {
+        if (android.os.Build.VERSION.SDK_INT < 24) {
+            return BootToken.read(new java.io.File("/proc/sys/kernel/random/boot_id"));
+        }
         return Settings.Global.getInt(ctx.getContentResolver(), Settings.Global.BOOT_COUNT, -1);
     }
 

@@ -18,7 +18,11 @@ android {
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    testBuildType 'release'
+    // Self-instrument this variant: a second test APK would shadow the app's desugared Java classes
+    // with its own partial copies on API 23. Neither the runner nor tests enter the release APK.
+    sourceSets {
+        deviceTest.java.srcDir 'src/androidTest/java'
+    }
 
     buildTypes {
         release {
@@ -26,9 +30,14 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            testProguardFiles 'proguard-android-test.pro'
             // Sideloaded over ADB, never published: sign with the debug key so it installs over a debug build.
             signingConfig signingConfigs.debug
+        }
+        deviceTest {
+            initWith release
+            minifyEnabled false
+            shrinkResources false
+            matchingFallbacks = ['release']
         }
     }
 
@@ -53,7 +62,7 @@ dependencies {
     implementation 'androidx.dynamicanimation:dynamicanimation:1.0.0'
     // Test only (never in the APK): plain JVM tests for the module card validators, src/test.
     testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'com.google.errorprone:error_prone_annotations:2.18.0'
+    deviceTestImplementation 'androidx.test:runner:1.5.2'
+    deviceTestImplementation 'androidx.test.ext:junit:1.1.5'
+    deviceTestImplementation 'com.google.errorprone:error_prone_annotations:2.18.0'
 }

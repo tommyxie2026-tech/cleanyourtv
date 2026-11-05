@@ -9,6 +9,11 @@ import java.util.Set;
 import static org.junit.Assert.*;
 
 public class LibraryAppsTest {
+    @Test public void legacyProjectorWithOnlyTheNewLauncherStillListsOrdinaryApps() {
+        assertTrue(LibraryApps.needsLegacyFallback(Collections.singleton("self"), "self"));
+        assertTrue(LibraryApps.needsLegacyFallback(Collections.emptySet(), "self"));
+        assertFalse(LibraryApps.needsLegacyFallback(Collections.singleton("tv.player"), "self"));
+    }
     @Test public void thePillHidesOnlyWhileTheTopBarButtonIsAWayIn() {
         assertTrue(LibraryApps.showPill(true, false, true));
         assertTrue(LibraryApps.showPill(true, true, true));

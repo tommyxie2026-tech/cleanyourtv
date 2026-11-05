@@ -3,6 +3,7 @@ package com.gathin.tvhome;
 import android.content.Context;
 import android.content.res.Resources;
 import android.media.tv.TvInputInfo;
+import android.media.tv.TvInputManager;
 import android.os.Build;
 import android.os.UserManager;
 import java.util.Locale;
@@ -30,5 +31,16 @@ final class PlatformCompat {
 
     static CharSequence customInputLabel(TvInputInfo input, Context context) {
         return Build.VERSION.SDK_INT >= 24 ? input.loadCustomLabel(context) : null;
+    }
+
+    static TvInputManager tvInputManager(Context context) {
+        try {
+            TvInputManager inputs = (TvInputManager) context.getSystemService(Context.TV_INPUT_SERVICE);
+            // Some AOSP projectors return a manager whose underlying ITvInputManager binder is null.
+            if (inputs != null) inputs.getTvInputList();
+            return inputs;
+        } catch (RuntimeException unavailable) {
+            return null;
+        }
     }
 }

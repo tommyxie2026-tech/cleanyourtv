@@ -18,11 +18,12 @@ the gitignored `launcher/local.properties`. Then run:
 
 ```sh
 cd launcher
-./gradlew --no-daemon testReleaseUnitTest lintRelease assembleRelease assembleReleaseAndroidTest
+./gradlew --no-daemon testReleaseUnitTest lintRelease assembleRelease assembleDeviceTest
 ```
 
 The application is `launcher/app/build/outputs/apk/release/app-release.apk`.
-The device tests are under `launcher/app/build/outputs/apk/androidTest/release/`.
+The self-instrumenting test application is `launcher/app/build/outputs/apk/deviceTest/app-deviceTest.apk`.
+It includes the test runner in the same APK to avoid separate-APK desugaring class-loader conflicts on API 23.
 The release APK uses the existing debug signing configuration for sideloading, not a production signing
 key. Keep that key when building subsequent updates. Java library backfilling increases APK size: this
 fork does not claim to satisfy the upstream 576 KB size gate and does not change that gate or CI.
@@ -39,9 +40,25 @@ root, enable accessibility helpers, change the device owner, or disable the orig
 Do not disable stock Home to test compatibility. H2 firmware may continue opening its stock launcher
 when Home is pressed; OS compatibility and default-Home takeover are separate issues.
 
-Device tests cover Java dates, fonts, caption files, guard preferences, and startup/recreation/destruction.
+To run the real-device tests, install the test application temporarily, then reinstall the release:
+
+```sh
+adb install -r launcher/app/build/outputs/apk/deviceTest/app-deviceTest.apk
+adb shell am instrument -w -r -e class com.gathin.tvhome.Android6CompatibilityTest com.gathin.tvhome/androidx.test.runner.AndroidJUnitRunner
+adb install -r launcher/app/build/outputs/apk/release/app-release.apk
+```
+
+Device tests cover Java dates, fonts, caption files, boot identity, missing TV input backends,
+legacy Home intent resolution, and startup/recreation/destruction.
 The implementation must be tested on a real API 23 device; newer API versions require their own test
 results before being described as verified. Keep package/data backups and existing Ice Box settings.
+
+On H2, the native settings entry is retained. Its incomplete Android TV input service cannot supply
+the launcher's HDMI list; the projector's original input controls remain available. If explicitly
+enabled by the user, the Home helper can redirect `stock_home_redirect` to this launcher while leaving
+the original launcher and other accessibility services enabled. Android 6/7 use an explicit activity
+launch because some projector firmware rejects third-party HOME intents. Reboot and physical remote
+behavior require separate device checks.
 
 ## Design and implementation record
 

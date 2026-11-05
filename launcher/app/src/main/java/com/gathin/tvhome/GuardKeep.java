@@ -82,25 +82,34 @@ final class GuardKeep {
     }
 
     /** Drops the service from the list and puts it back on the next SCREEN_ON. The process has to stay up. */
-    static void stepOut(AccessibilityService service) {
+    static boolean stepOut(AccessibilityService service) {
         if (android.os.Build.VERSION.SDK_INT < 24
                 && service.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
-                        != PackageManager.PERMISSION_GRANTED) return;
-        watchScreenOn(service.getApplicationContext());
-        if (android.os.Build.VERSION.SDK_INT >= 24) {
-            service.disableSelf();
-        } else {
-            // Android 6 has no disableSelf. Remove only this helper from the enabled list.
-            ComponentName mine = new ComponentName(service, service.getClass());
-            String list = Settings.Secure.getString(service.getContentResolver(),
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            List<String> others = new ArrayList<>();
-            if (list != null) for (String entry : list.split(":")) {
-                if (!mine.equals(ComponentName.unflattenFromString(entry))) others.add(entry);
+                        != PackageManager.PERMISSION_GRANTED) return false;
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 24) {
+                service.disableSelf();
+            } else {
+                // Android 6 has no disableSelf. Remove only this helper from the enabled list.
+                ComponentName mine = new ComponentName(service, service.getClass());
+                String list = Settings.Secure.getString(service.getContentResolver(),
+                        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+                List<String> others = new ArrayList<>();
+                boolean found = false;
+                if (list != null) for (String entry : list.split(":")) {
+                    if (mine.equals(ComponentName.unflattenFromString(entry))) found = true;
+                    else others.add(entry);
+                }
+                if (!found) return false;  // Already removed by the user: never arm repair for that.
+                if (!Settings.Secure.putString(service.getContentResolver(),
+                        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                        android.text.TextUtils.join(":", others))) return false;
             }
-            Settings.Secure.putString(service.getContentResolver(),
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, android.text.TextUtils.join(":", others));
+        } catch (RuntimeException refused) {
+            return false;
         }
+        watchScreenOn(service.getApplicationContext());
+        return true;
     }
 
     private static void watchScreenOn(Context app) {

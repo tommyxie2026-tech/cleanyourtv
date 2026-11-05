@@ -269,12 +269,16 @@ public class AppAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         Set<String> added = new HashSet<>(LibraryApps.load(ctx));
         added.addAll(libraryPreload);
         Set<String> removed = LibraryApps.loadRemoved(ctx);
-        if (!added.isEmpty()) {
+        boolean ordinaryFallback = android.os.Build.VERSION.SDK_INT < 26
+                && LibraryApps.needsLegacyFallback(tvPackages, ctx.getPackageName());
+        if (!added.isEmpty() || ordinaryFallback) {
             Set<String> seen = new HashSet<>(tvPackages);
             for (ResolveInfo ri : pm.queryIntentActivities(
                     new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0)) {
-                if (ri.activityInfo != null && added.contains(ri.activityInfo.packageName)
-                        && seen.add(ri.activityInfo.packageName)) found.add(ri);
+                if (ri.activityInfo == null) continue;
+                String pkg = ri.activityInfo.packageName;
+                if (ordinaryFallback && !hidden.contains(pkg)) added.add(pkg);
+                if (added.contains(pkg) && seen.add(pkg)) found.add(ri);
             }
         }
         Map<String, Cards.Card> cardByPkg = new HashMap<>();

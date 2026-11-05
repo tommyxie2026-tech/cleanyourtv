@@ -129,7 +129,7 @@ def format_problems(res=RES):
     default_strings, default_plurals = catalog(Path(res) / "values" / "strings.xml")
     plural_names = {name for name, _ in default_plurals}
     out = []
-    for folder in sorted(p for p in Path(res).iterdir() if p.is_dir() and p.name.startswith("values-")):
+    for folder in sorted(p for p in Path(res).iterdir() if p.is_dir() and p.name.startswith("values-") and not re.fullmatch(r"values-v[0-9]+", p.name)):
         page = f"{folder.name}/strings.xml"
         if not (folder / "strings.xml").is_file():
             out.append(f"{page}: the folder has no strings.xml")
@@ -241,7 +241,7 @@ class ShippedStringsTest(unittest.TestCase):
         self.assertTrue(default_plurals, "the plurals were not read")
         self.assertTrue(any(specifiers(body) for body in default_strings.values()),
                         "no specifier was read out of values/strings.xml")
-        folders = [p for p in RES.iterdir() if p.is_dir() and p.name.startswith("values-")]
+        folders = [p for p in RES.iterdir() if p.is_dir() and p.name.startswith("values-") and not re.fullmatch(r"values-v[0-9]+", p.name)]
         self.assertGreaterEqual(len(folders), 30, "the language folders were not read")
         pairs = with_specifiers = 0
         for folder in folders:

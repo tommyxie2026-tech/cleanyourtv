@@ -25,6 +25,12 @@ final class LibraryApps {
 
     private LibraryApps() { }
 
+    /** Some old AOSP projectors have ordinary launcher entries only, apart from this new Home. */
+    static boolean needsLegacyFallback(Set<String> tvPackages, String self) {
+        for (String pkg : tvPackages) if (!self.equals(pkg)) return false;
+        return true;
+    }
+
     private static AtomicFile store(Context context, boolean removed) {
         return new AtomicFile(new File(context.getFilesDir(), removed ? "library_home_removed.txt" : "library_apps.txt"));
     }

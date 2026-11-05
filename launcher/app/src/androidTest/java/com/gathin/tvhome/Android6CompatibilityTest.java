@@ -10,8 +10,6 @@ import androidx.test.platform.app.InstrumentationRegistry;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,9 +21,20 @@ public class Android6CompatibilityTest {
         return InstrumentationRegistry.getInstrumentation().getTargetContext();
     }
 
-    @Test public void dateCalculationsWorkWithoutPlatformJavaTime() {
-        assertEquals("2024-02-29", LocalDate.of(2024, 2, 28).plusDays(1).toString());
-        assertNotNull(LocalDate.now(ZoneId.systemDefault()));
+    @Test public void televisionInputBackendMayBeAbsent() {
+        // A framework manager backed by a null ITvInputManager must not crash an AOSP projector.
+        android.media.tv.TvInputManager inputs = PlatformCompat.tvInputManager(context());
+        if (inputs != null) assertNotNull(inputs.getTvInputList());
+    }
+
+    @Test public void homeHelperIntentResolvesOnLegacyProjector() {
+        android.content.Intent intent = HomeKeyService.homeIntent(context(), false);
+        assertNotNull(context().getPackageManager().resolveActivity(intent,
+                android.content.pm.PackageManager.MATCH_DEFAULT_ONLY));
+        if (android.os.Build.VERSION.SDK_INT < 26) {
+            assertEquals(new android.content.ComponentName(context(), MainActivity.class), intent.getComponent());
+            assertFalse(intent.hasCategory(android.content.Intent.CATEGORY_HOME));
+        }
     }
 
     @Test public void bundledAndSystemFontsCanBeLoaded() {
@@ -35,8 +44,13 @@ public class Android6CompatibilityTest {
     }
 
     @Test public void guardPreferencesDoNotRequireAndroid7UnlockApis() {
-        // The default is off; reading it must also work before USER_UNLOCKED existed.
-        assertFalse(GuardKeep.offInStandby(context()));
+        assertTrue(PlatformCompat.userUnlocked(context()));
+    }
+
+    @Test public void legacyBootIdentityIsAvailableAndStable() {
+        int boot = OpenOnStart.boot(context());
+        assertTrue("A usable boot identity is required for boot actions", boot >= 0);
+        assertEquals(boot, OpenOnStart.boot(context()));
     }
 
     @Test public void captionFilesReadUtf8AndMissingFilesAreEmpty() throws Exception {
@@ -51,6 +65,10 @@ public class Android6CompatibilityTest {
             assertEquals("月亮 · Moon", names.get("moon.jpg"));
             assertTrue(captions.delete());
             assertTrue(WallpaperCaptions.read(folder).isEmpty());
+            try (FileOutputStream out = new FileOutputStream(captions)) {
+                out.write(new byte[256 * 1024 + 1]);
+            }
+            assertTrue(WallpaperCaptions.read(folder).isEmpty());
         } finally {
             captions.delete();
             folder.delete();
@@ -62,6 +80,9 @@ public class Android6CompatibilityTest {
             scenario.onActivity(activity -> {
                 assertNotNull(activity.findViewById(R.id.btnSettings));
                 assertNotNull(activity.findViewById(R.id.btnWifi));
+                // Starting the actual activity exercises its desugared date calculations. Keep the
+                // test APK free of its own partial LocalDate implementation shadowing the app's one.
+                assertNotNull(activity.findViewById(R.id.clock));
             });
             scenario.recreate();
             scenario.onActivity(activity -> assertFalse(activity.isFinishing()));

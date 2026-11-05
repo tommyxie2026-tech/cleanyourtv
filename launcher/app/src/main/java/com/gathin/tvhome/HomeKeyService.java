@@ -176,8 +176,7 @@ public class HomeKeyService extends AccessibilityService {
     }
 
     private void leaveForStandby() {
-        steppingOut = true;
-        GuardKeep.stepOut(this);
+        steppingOut = GuardKeep.stepOut(this);
     }
 
     private void loadConfig() {
@@ -203,6 +202,19 @@ public class HomeKeyService extends AccessibilityService {
             Intent home = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME).setPackage(config.stockHomeRedirect);
             for (ResolveInfo ri : getPackageManager().queryIntentActivities(home, PackageManager.MATCH_DISABLED_COMPONENTS)) {
                 stockHome.add(ri.activityInfo.name);
+            }
+            // Older XGIMI firmware starts its ordinary launcher explicitly and declares no HOME filter.
+            // Only the opt-in package's main entry is eligible; never redirect all of its settings pages.
+            if (stockHome.isEmpty()) {
+                Intent launch = getPackageManager().getLaunchIntentForPackage(config.stockHomeRedirect);
+                if (launch != null && launch.getComponent() != null) {
+                    try {
+                        android.content.pm.ActivityInfo activity = getPackageManager().getActivityInfo(launch.getComponent(), 0);
+                        addLaunchHomeFallback(stockHome, activity.targetActivity != null ? activity.targetActivity : activity.name);
+                    } catch (PackageManager.NameNotFoundException unavailable) {
+                        // Leave the original launcher alone when the configured entry no longer exists.
+                    }
+                }
             }
         }
         // power_on_home, off by default. Not with boot_to_live_tv, or with Live TV picked as the Open on start app:
@@ -377,7 +389,7 @@ public class HomeKeyService extends AccessibilityService {
      *  front comes back and sends a window event, and onAccessibilityEvent covers it only if it is the stock home.
      *  An HDMI input or an app that the TV resumed at boot is left alone. */
     private void probeAtBoot() {
-        int boot = Settings.Global.getInt(getContentResolver(), Settings.Global.BOOT_COUNT, -1);
+        int boot = OpenOnStart.boot(this);
         SharedPreferences prefs = getSharedPreferences("boot", MODE_PRIVATE);
         if (!firstBindAfterBoot(boot, prefs.getInt("probe_boot", -1), SystemClock.elapsedRealtime())) return;
         prefs.edit().putInt("probe_boot", boot).apply();
@@ -412,11 +424,28 @@ public class HomeKeyService extends AccessibilityService {
         return upTime - downTime < longPressTimeout;
     }
 
+    static void addLaunchHomeFallback(Set<String> homes, String launchActivity) {
+        if (homes.isEmpty() && launchActivity != null && !launchActivity.isEmpty()) homes.add(launchActivity);
+    }
+
     private void openHome() {
-        Intent open = stockHomeStays() ? new Intent(this, MainActivity.class)
-                : new Intent(Intent.ACTION_MAIN).setPackage(getPackageName());
-        startActivity(open.addCategory(Intent.CATEGORY_HOME)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED));
+        try {
+            startActivity(homeIntent(this, stockHomeStays()));
+        } catch (ActivityNotFoundException | SecurityException e) {
+            android.util.Log.w("HomeKeyService", "Unable to open launcher", e);
+        }
+    }
+
+    static Intent homeIntent(Context context, boolean stockHomeStays) {
+        // Older projector firmware can reject even package-scoped HOME intents.
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            return new Intent(context, MainActivity.class)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        }
+        Intent open = stockHomeStays ? new Intent(context, MainActivity.class)
+                : new Intent(Intent.ACTION_MAIN).setPackage(context.getPackageName());
+        return open.addCategory(Intent.CATEGORY_HOME)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
     }
 
     /** stock_home_redirect while Android's Home is still the stock launcher (launcherx on Google TV outranks this

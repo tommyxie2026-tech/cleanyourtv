@@ -1,9 +1,6 @@
 # AGENTS.md
 
-This is an authorized Android 6+ fork. [ANDROID6.md](ANDROID6.md) describes the compatibility scope.
-Upstream contribution restrictions still apply to upstream submissions; this fork permits the approved
-API 23 port and its Java API backfill dependency. Do not change firmware or disable stock Home for tests.
-
+Android 6+ fork: [ANDROID6.md](ANDROID6.md) authorizes this branch's API 23 port and Java backfill.
 
 Instructions for coding agents (Claude Code, Codex, Gemini CLI, Cursor, Copilot and others) working in
 this repository. People should start with [README.md](README.md) and [CONTRIBUTING.md](CONTRIBUTING.md);

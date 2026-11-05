@@ -96,6 +96,7 @@ import java.util.Set;
  * tvOS style home: black, a pinned dock row, an app grid, and one glass highlight that springs between tiles.
  */
 public class MainActivity extends Activity implements AppAdapter.TileListener {
+    private TvInputManager tvInputManager;
     @Override
     protected void attachBaseContext(android.content.Context base) {
         super.attachBaseContext(LauncherLocale.wrap(base));   // locale
@@ -380,7 +381,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
             boolean validated = caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED);
             // open_on_start_network_wait: the boot's app opens on the first validated network.
             if (validated && startPending != null) handler.post(openWhenOnline);
-            if (validated == lastValidated) return;
+            if (Build.VERSION.SDK_INT >= 24 && validated == lastValidated) return;
             lastValidated = validated;
             if (wifiNoInternetTint != null) handler.post(MainActivity.this::updateWifiLabel);
         }
@@ -455,6 +456,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        tvInputManager = PlatformCompat.tvInputManager(this);
         setContentView(R.layout.activity_main);
         density = getResources().getDisplayMetrics().density;
         // config.xml, overlaid by config.json from a pushed theme (see Config and tools/theme.sh).
@@ -953,7 +955,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
 
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        TvInputManager tim = tvInputManager;
         if (tim != null) tim.registerCallback(inputCallback, handler);
         if (cm != null) {
             if (Build.VERSION.SDK_INT >= 24) {
@@ -1401,7 +1403,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         if (openOnStartOnWake) unregisterReceiver(wakeReceiver);
         wallpaperPlayer.close();
         ConnectivityManager cm = getSystemService(ConnectivityManager.class);
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        TvInputManager tim = tvInputManager;
         if (tim != null) tim.unregisterCallback(inputCallback);
         if (cm != null) {
             cm.unregisterNetworkCallback(networkCallback);
@@ -3224,7 +3226,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         }
         boolean any = liveTvIntent() != null || !sourcePanelService.isEmpty()
                 || (coocaaSources && !CoocaaSources.list(this).isEmpty());
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        TvInputManager tim = tvInputManager;
         if (!any && tim != null) {
             for (TvInputInfo info : tim.getTvInputList()) {
                 // Inputs hidden in Settings > Inputs are left out of the menu, so they don't count here either.
@@ -3343,7 +3345,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         // A CEC device is a child input of its HDMI port; the vendor source number belongs to the port
         // (MiTV-MFFU0). Only that lookup uses the parent: the generic path below still opens the child.
         String sourceId = inputId;
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        TvInputManager tim = tvInputManager;
         if (tim != null) {
             try {
                 TvInputInfo info = tim.getTvInputInfo(inputId);
@@ -3425,7 +3427,7 @@ public class MainActivity extends Activity implements AppAdapter.TileListener {
         int width = Math.max(anchor.getWidth(), (int) (150 * density));
         final PopupWindow popup = glassPopup(panel, width);
 
-        TvInputManager tim = (TvInputManager) getSystemService(TV_INPUT_SERVICE);
+        TvInputManager tim = tvInputManager;
         // inputs_connected_only: ports without a connected device and the AV jacks fold behind a "More inputs" row.
         boolean connectedOnly = inputsConnectedOnly;
         List<View> folded = new ArrayList<>();
