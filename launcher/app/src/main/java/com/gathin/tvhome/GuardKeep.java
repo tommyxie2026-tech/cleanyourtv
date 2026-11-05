@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.PowerManager;
-import android.os.UserManager;
 import android.provider.Settings;
 
 import java.util.ArrayList;
@@ -35,8 +34,7 @@ final class GuardKeep {
     }
 
     static boolean offInStandby(Context context) {
-        UserManager users = context.getSystemService(UserManager.class);
-        if (users != null && !users.isUserUnlocked()) return false;
+        if (!PlatformCompat.userUnlocked(context)) return false;
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_OFF, false);
     }
 
@@ -85,8 +83,24 @@ final class GuardKeep {
 
     /** Drops the service from the list and puts it back on the next SCREEN_ON. The process has to stay up. */
     static void stepOut(AccessibilityService service) {
+        if (android.os.Build.VERSION.SDK_INT < 24
+                && service.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS)
+                        != PackageManager.PERMISSION_GRANTED) return;
         watchScreenOn(service.getApplicationContext());
-        service.disableSelf();
+        if (android.os.Build.VERSION.SDK_INT >= 24) {
+            service.disableSelf();
+        } else {
+            // Android 6 has no disableSelf. Remove only this helper from the enabled list.
+            ComponentName mine = new ComponentName(service, service.getClass());
+            String list = Settings.Secure.getString(service.getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+            List<String> others = new ArrayList<>();
+            if (list != null) for (String entry : list.split(":")) {
+                if (!mine.equals(ComponentName.unflattenFromString(entry))) others.add(entry);
+            }
+            Settings.Secure.putString(service.getContentResolver(),
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES, android.text.TextUtils.join(":", others));
+        }
     }
 
     private static void watchScreenOn(Context app) {

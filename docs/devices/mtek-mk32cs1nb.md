@@ -4,7 +4,7 @@ Android 7.0 (SDK 24), firmware `20171230_042214`, 1 GB of RAM and 8 GB of flash,
 `com.cvte.tv.launcher`. The board is CVTE's `TP.MT5510I.PB801` on a MediaTek MT5863.
 
 This is one session on one set: the launcher ran there from a local build, and no debloat list was
-kept. The repo's launcher stays at Android 8.0 - `minSdk 26` in `launcher/app/build.gradle` - so an
+kept. This fork now supports `minSdk 23` ([compatibility notes](../../ANDROID6.md)). The upstream launcher stays at Android 8.0 - `minSdk 26` in `launcher/app/build.gradle` - so an
 Android 7 set answers `INSTALL_FAILED_OLDER_SDK`, and `PROMPT.md` says to offer the debloat half and
 say the launcher cannot be installed. What follows is the fork the owner built instead, kept here
 because it is the part another owner of this board would have to redo.
